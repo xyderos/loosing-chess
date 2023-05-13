@@ -2,13 +2,25 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "Launch dbg",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/executable",
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "build"
+        },
+        {
+            "name": "Launch game",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/game",
+            "args": [
+                "white",
+                "naive"
+            ],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "build_and_run"
         }
     ]
 }

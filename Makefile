@@ -33,6 +33,15 @@ OBJECT_FILES_OF_TESTS_WITH_PREFIX := $(foreach F,$(OBJECT_FILES_OF_TESTS_WITHOUT
 TEST_OBJECTS :=$(addprefix $(NAME_OF_THE_OBJECTS_OF_THE_TESTS)/, $(OBJECT_FILES_OF_TESTS_WITH_PREFIX))
 LIBS := -lcppunit $(NAME_OF_THE_LIBRARY)
 
+# driver
+NAME_OF_DRIVER := game
+NAME_OF_SOURCE_CODE_FOR_DRIVER:= driver
+NAME_OF_THE_OBJECTS_OF_THE_DRIVER := temp_driver_obj_directory
+OBJECT_FILES_OF_DRIVER_WITHOUT_PREFIX := $(patsubst %$(SOURCE_FILES_SUFFIX),%$(OBJECT_SUFFIX),$(patsubst %$(HEADER_SUFFIX),%$(OBJECT_SUFFIX),$(shell find ./driver/ -type f -name "*$(HEADER_SUFFIX)")))
+OBJECT_FILES_OF_DRIVER_WITH_PREFIX := $(foreach F,$(OBJECT_FILES_OF_DRIVER_WITHOUT_PREFIX),$(lastword $(subst ./driver/, ,$F)))
+DRIVER_OBJECTS :=$(addprefix $(NAME_OF_THE_OBJECTS_OF_THE_DRIVER)/, $(OBJECT_FILES_OF_DRIVER_WITH_PREFIX))
+LIBS := -lcppunit $(NAME_OF_THE_LIBRARY)
+
 MEM_CHECK_FILE := valgrind_results.txt
 
 # build the library
@@ -67,9 +76,25 @@ test_lib_dirs:
 	cp -R --attributes-only ./$(NAME_OF_SOURCE_CODE_FOR_TESTS)/ ./$(NAME_OF_THE_OBJECTS_OF_THE_TESTS)
 	find ./$(NAME_OF_THE_OBJECTS_OF_THE_TESTS) -type f -exec rm {} \;
 
+# build the driver
+driver: clean $(NAME_OF_THE_LIBRARY) $(NAME_OF_DRIVER)
+
+# build an executable that tests the library
+$(NAME_OF_DRIVER): driver_dirs $(DRIVER_OBJECTS)
+	$(CXX) $(CXXFLAGS) $(DRIVER_OBJECTS) -o $(NAME_OF_DRIVER) -L. $(LIBS) 
+
+# compile command for each test file
+$(NAME_OF_THE_OBJECTS_OF_THE_DRIVER)/%.o: $(NAME_OF_SOURCE_CODE_FOR_DRIVER)/%$(SOURCE_FILES_SUFFIX) $(NAME_OF_SOURCE_CODE_FOR_DRIVER)/%$(HEADER_SUFFIX)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# make temporary directory for the test objects
+driver_dirs:
+	cp -R --attributes-only ./$(NAME_OF_SOURCE_CODE_FOR_DRIVER)/ ./$(NAME_OF_THE_OBJECTS_OF_THE_DRIVER)
+	find ./$(NAME_OF_THE_OBJECTS_OF_THE_DRIVER) -type f -exec rm {} \;
+
 clean:
-	rm -f *~ *.o $(NAME_OF_THE_LIBRARY) $(NAME_OF_TEST_EXECUTABLE) $(MEM_CHECK_FILE)
-	rm -rf $(NAME_OF_THE_OBJECTS_OF_THE_LIBRARY) $(NAME_OF_THE_OBJECTS_OF_THE_TESTS)
+	rm -f *~ *.o $(NAME_OF_THE_LIBRARY) $(NAME_OF_TEST_EXECUTABLE) $(NAME_OF_DRIVER) $(MEM_CHECK_FILE)
+	rm -rf $(NAME_OF_THE_OBJECTS_OF_THE_LIBRARY) $(NAME_OF_THE_OBJECTS_OF_THE_TESTS) $(NAME_OF_THE_OBJECTS_OF_THE_DRIVER)
 
 memory_check: test
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes --verbose --log-file=$(MEM_CHECK_FILE) ./$(NAME_OF_TEST_EXECUTABLE)

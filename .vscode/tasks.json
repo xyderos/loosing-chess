@@ -13,6 +13,18 @@
           "kind": "build",
           "isDefault": true
         }
+      },
+      {
+        "label": "build_and_run",
+        "type": "shell",
+        "command": "make",
+        "args": [
+          "driver"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
       }
     ]
   }
